@@ -1,10 +1,17 @@
 /* global Promise */
+var url = require('url');
+var path = require('path');
+var fs = require('fs-jetpack');
 var request = require('request');
 var cheerio = require('cheerio');
 var readYaml = require('read-yaml');
+var dateFormat = require('dateformat');
 
-var comicsList = [];
-var comicRequests = [];
+var now = new Date();
+var folder = path.join('./archive', dateFormat(now, 'yyyy/mm/dd'));
+
+var comicsRequestList = []; // single list of formatted comic urls
+var comicPromiseList = []; // promise list of image requests
 
 /* Format Comic URL with name of comic
 --------------------------------------------------------------------------- */
@@ -26,9 +33,50 @@ var formatComicsUrl = function(type, comic) {
             results.selector.img = 'img.the-comic';
             break;
     }
+    results.name = comic;
     return results;
 };
 
+var showDownloadingProgress = function(msg, received, total) {
+    var percentage = ((received * 100) / total).toFixed(2);
+    process.stdout.write(msg + percentage + '%\r');
+    if (percentage >= 100) { process.stdout.write('\n'); }
+};
+
+var formatLocalFileName = function(file, name, type) {
+    var extension = path.extname(file).slice(1);
+    if (!extension) { extension = type.split('/')[1]; }
+    return name + '.' + extension;
+};
+
+/* Download image to local folder
+--------------------------------------------------------------------------- */
+var saveImage = function(remote_file, name, callback) {
+    return new Promise(function(resolve, reject) {
+        var received_bytes = 0;
+        var total_bytes = 0;
+        var msg = 'Saving ' + name + ': ';
+
+        var r = request.get(remote_file)
+            .on('error', function(err) {
+                if (err) { reject(err); }
+            })
+            .on('response', function(response) {
+                total_bytes = parseInt(response.headers['content-length']);
+                var localFile = formatLocalFileName(remote_file, name, response.headers['content-type']);
+                // Save file to local folder
+                r.pipe(fs.createWriteStream(path.join(folder, localFile)));
+            })
+            .on('data', function(chunk) {
+                received_bytes += chunk.length;
+                showDownloadingProgress(msg, received_bytes, total_bytes);
+            })
+            .on('end', resolve);
+    });
+};
+
+/* Find image and title within the web page
+--------------------------------------------------------------------------- */
 function getComicStrip(comic) {
     return new Promise(function(resolve, reject) {
         request(comic.url, function(err, response, body) {
@@ -39,15 +87,16 @@ function getComicStrip(comic) {
 
             var  $ = cheerio.load(body);
             var selector = comic.selector.title.split('@');
+            var img = $(comic.selector.img)[0].attribs.src;
 
             var comicstrip = {
                 title: $(selector[0]).attr(selector[1]),
-                image: $(comic.selector.img)[0].attribs.src
+                image: url.resolve(comic.url, img)
             };
 
-            // TODO: 1) Save image into today's folder 2017/04/24/{comic}.jpg
-
-            resolve(comicstrip);
+            saveImage(comicstrip.image, comic.name).then(function() {
+                resolve(comicstrip);
+            });
         });
     });
 }
@@ -60,33 +109,25 @@ readYaml('comics-list.yml', function(err, data) {
     // 1) Format comic urls
     data.comics.forEach(function(comics) {
         comics.items.forEach(function(comic) {
-            // TODO: 1) if there is a image with same name as `comic` in today's folder, skip it.
-            // TODO: 2) if all images have been skipped, open today's `index.html` page
-            var results = formatComicsUrl(comics.url, comic);
-            if (results.url) { comicsList.push(results); }
+            var file = fs.dir(folder).find('.', { matching: '*' + comic + '*' });
+            if (!file.length) {
+                var results = formatComicsUrl(comics.url, comic);
+                if (results.url) { comicsRequestList.push(results); }
+            }
         });
     });
 
     // 2) Scrape title & images from website
-    for (var item in comicsList) {
-        if (comicsList.hasOwnProperty(item)) {
-            comicRequests.push(getComicStrip(comicsList[item]));
+    for (var item in comicsRequestList) {
+        if (comicsRequestList.hasOwnProperty(item)) {
+            comicPromiseList.push(getComicStrip(comicsRequestList[item]));
         }
     }
 
     // 3) Build/update index pages
-    Promise.all(comicRequests).then(function() {
-        console.log('complete');
+    Promise.all(comicPromiseList).then(function() {
+        console.log(fs.list(folder));
         // TODO: 1) add all images + title to `index.html` inside today's folder
         // TODO: 2) open `index.html` in browser
     });
-
 });
-
-// var request = require('request'),
-//     fs      = require('fs'),
-//     url     = 'http://upload.wikimedia.org/wikipedia/commons/8/8c/JPEG_example_JPG_RIP_025.jpg';
-
-// request(url, {encoding: 'binary'}, function(error, response, body) {
-//   fs.writeFile('./downloaded.jpg', body, 'binary', function (err) {});
-// });
