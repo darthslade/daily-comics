@@ -2,13 +2,21 @@
 comics:
   - url: gocomics
     items:
-  #     - calvinandhobbes
-  #     - bc
-  #     - garfield
-      - nonsequitur
+      # - file: calvinandhobbes
+      #   name: Calvin and Hobbes
+      # - file: bc
+      #   name: B.C.
+      # - file: garfield
+      #   name: Garfield
+      - file: nonsequitur
+        name: Non Sequitur
   - url: arcamax
     items:
-      # - blondie
-      # - beetlebailey
-      # - dilbert
-      - zits
+      # - file: blondie
+      #   name: Blondie
+      # - file: beetlebailey
+      #   name: Beetle Bailey
+      # - file: dilbert
+      #   name: Dilbert
+      - file: zits
+        name: Zits
