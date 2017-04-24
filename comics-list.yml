@@ -1,0 +1,14 @@
+# http://yaml.org/type/omap.html
+comics:
+  - url: gocomics
+    items:
+  #     - calvinandhobbes
+  #     - bc
+  #     - garfield
+      - nonsequitur
+  - url: arcamax
+    items:
+      # - blondie
+      # - beetlebailey
+      # - dilbert
+      - zits
