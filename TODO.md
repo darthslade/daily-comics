@@ -1,9 +1,9 @@
 ## To Do
 
  - pull list of comics from yaml file (read-yaml, js-yaml)
- - start casper
  - loop through comic URLs
  - loop through each comic from comic URL
+ - start cheerio
  - parse comic src URL from DOM
  - download image to local folder with current date
  - once all images are downloaded, create index.html page
