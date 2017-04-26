@@ -13,6 +13,11 @@ var folder = path.join('./archive', dateFormat(now, 'yyyy/mm/dd'));
 var comicsRequestList = []; // single list of formatted comic urls
 var comicPromiseList = []; // promise list of image requests
 
+var divider = function() {
+    var cols = process.stdout.columns;
+    return Array.apply(null, { length: cols }).join('-').slice(0, cols);
+};
+
 /* Format Comic URL with name of comic
 --------------------------------------------------------------------------- */
 var formatComicsUrl = function(type, comic) {
@@ -23,17 +28,15 @@ var formatComicsUrl = function(type, comic) {
 
     switch (type) {
         case 'gocomics':
-            results.url = `http://www.gocomics.com/${comic}`;
-            results.selector.title = '.gc-feature-header-link@title';
+            results.url = `http://www.gocomics.com/${comic.file}`;
             results.selector.img = '.item-comic-image > img';
             break;
         case 'arcamax':
-            results.url = `https://www.arcamax.com/thefunnies/${comic}/`;
-            results.selector.title = 'meta[property="og:title"]@content';
+            results.url = `https://www.arcamax.com/thefunnies/${comic.file}/`;
             results.selector.img = 'img.the-comic';
             break;
     }
-    results.name = comic;
+    results.name = comic.file;
     return results;
 };
 
@@ -55,7 +58,7 @@ var saveImage = function(remote_file, name, callback) {
     return new Promise(function(resolve, reject) {
         var received_bytes = 0;
         var total_bytes = 0;
-        var msg = 'Saving ' + name + ': ';
+        var msg = ' - ' + name + ': ';
 
         var r = request.get(remote_file)
             .on('error', function(err) {
@@ -86,11 +89,9 @@ function getComicStrip(comic) {
             }
 
             var  $ = cheerio.load(body);
-            var selector = comic.selector.title.split('@');
             var img = $(comic.selector.img)[0].attribs.src;
 
             var comicstrip = {
-                title: $(selector[0]).attr(selector[1]),
                 image: url.resolve(comic.url, img)
             };
 
@@ -107,9 +108,10 @@ readYaml('comics-list.yml', function(err, data) {
     if (err) { throw err; }
 
     // 1) Format comic urls
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     data.comics.forEach(function(comics) {
         comics.items.forEach(function(comic) {
-            var file = fs.dir(folder).find('.', { matching: '*' + comic + '*' });
+            var file = fs.dir(folder).find('.', { matching: '*' + comic.file + '*' });
             if (!file.length) {
                 var results = formatComicsUrl(comics.url, comic);
                 if (results.url) { comicsRequestList.push(results); }
@@ -118,13 +120,21 @@ readYaml('comics-list.yml', function(err, data) {
     });
 
     // 2) Scrape title & images from website
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if (comicsRequestList.length) {
+        console.log('Saving Comics:\n' + divider());
+    }
     for (var item in comicsRequestList) {
         if (comicsRequestList.hasOwnProperty(item)) {
             comicPromiseList.push(getComicStrip(comicsRequestList[item]));
         }
     }
+    if (comicsRequestList.length) {
+        console.log(divider());
+    }
 
     // 3) Build/update index pages
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Promise.all(comicPromiseList).then(function() {
         console.log(fs.list(folder));
         // TODO: 1) add all images + title to `index.html` inside today's folder
