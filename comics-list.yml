@@ -1,22 +1,70 @@
-# http://yaml.org/type/omap.html
 comics:
   - url: gocomics
     items:
-      # - file: calvinandhobbes
-      #   name: Calvin and Hobbes
-      # - file: bc
-      #   name: B.C.
-      # - file: garfield
-      #   name: Garfield
+      - file: calvinandhobbes
+        name: Calvin and Hobbes
+      - file: bc
+        name: B.C.
+      - file: garfield
+        name: Garfield
       - file: nonsequitur
         name: Non Sequitur
+      - file: wizardofid
+        name: Wizard of Id
+      - file: frank-and-ernest
+        name: Frank and Ernest
+      - file: brevity
+        name: Brevity
+      - file: loose-parts
+        name: Loose Parts
+      - file: reality-check
+        name: Reality Check
+      - file: speedbump
+        name: Speed Bump
+      - file: the-born-loser
+        name: The Born Loser
+      - file: shoe
+        name: Shoe
+      - file: duplex
+        name: The Duplex
+      - file: drabble
+        name: Drabble
+      - file: fowl-language
+        name: Fowl Language
+      - file: thegrizzwells
+        name: The Grizzwells
+      - file: dogsofckennel
+        name: Dogs of C-Kennel
+      - file: pcandpixel
+        name: PC and Pixel
+      - file: monty
+        name: Monty
+      - file: ripleysbelieveitornot
+        name: Ripley’s Believe It or Not
+      - file: wide-open
+        name: Wide Open
+
   - url: arcamax
     items:
-      # - file: blondie
-      #   name: Blondie
-      # - file: beetlebailey
-      #   name: Beetle Bailey
-      # - file: dilbert
-      #   name: Dilbert
+      - file: blondie
+        name: Blondie
+      - file: beetlebailey
+        name: Beetle Bailey
+      - file: dilbert
+        name: Dilbert
       - file: zits
         name: Zits
+      - file: hiandlois
+        name: Hi and Lois
+      - file: mothergooseandgrimm
+        name: Mother Goose & Grimm
+      - file: hagarthehorrible
+        name: Hagar The Horrible
+      - file: familycircus
+        name: Family Circus
+      - file: gingermeggs
+        name: Ginger Meggs
+      - file: dustin
+        name: Dustin
+      - file: bizarro
+        name: Bizarro
