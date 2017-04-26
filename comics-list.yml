@@ -1,3 +1,6 @@
+# file: url-formatted name; parsed with Template Literal inside `index.js`
+# name: comic title; formatted in title case
+
 comics:
   - url: gocomics
     items:
