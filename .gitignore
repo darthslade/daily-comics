@@ -5,5 +5,5 @@ archive/*
 node_modules/*
 utils/tmp/*
 !utils/tmp/.gitkeep
-TODO
+TODO*
 .idea
