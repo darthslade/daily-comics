@@ -26,6 +26,8 @@ var formatComicsUrl = function(type, comic) {
         selector: {}
     };
 
+    // Kludge: Would prefer the HTML5 Template Literal to be stored in the yaml file along with each list
+    // but it's a pain to `eval` the template then parse. It's easier to store it in this `switch` statement.
     switch (type) {
         case 'gocomics':
             results.url = `http://www.gocomics.com/${comic.file}`;
@@ -91,6 +93,7 @@ function getComicStrip(comic) {
             var  $ = cheerio.load(body);
             var img = $(comic.selector.img)[0].attribs.src;
 
+            // @url.resolve - concat relative urls with their hostname to create an absolute url
             var comicstrip = {
                 image: url.resolve(comic.url, img)
             };
