@@ -44,8 +44,6 @@ comics:
         name: Monty
       - file: ripleysbelieveitornot
         name: Ripley’s Believe It or Not
-      - file: wide-open
-        name: Wide Open
 
   - url: arcamax
     items:
