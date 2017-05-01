@@ -1,5 +1,6 @@
 /* global Promise */
 var url = require('url');
+var opn = require('opn');
 var path = require('path');
 var fs = require('fs-jetpack');
 var request = require('request');
@@ -33,7 +34,6 @@ var formatLocalFileName = function(file, name, type) {
 // ====================================================================================================
 var dailyComics = (function() {
     var errorList = [];
-    var comicsList = []; // flat array of all names of comics
 
     /* Format Comic URL with name of comic
     --------------------------------------------------------------------------- */
@@ -63,6 +63,11 @@ var dailyComics = (function() {
     /*
     --------------------------------------------------------------------------- */
     var downloadImages = function(urls) {
+        if (!urls.length) {
+            createIndexPage();
+            return;
+        }
+
         console.log('Saving Images\n' + divider());
         var list = urls.filter(function(n) { return n !== undefined; });
 
@@ -79,7 +84,7 @@ var dailyComics = (function() {
                     })
                     .on('response', function(response) {
                         total_bytes = parseInt(response.headers['content-length']);
-                        var localFile = formatLocalFileName(image.url, image.name, response.headers['content-type']);
+                        var localFile = formatLocalFileName(image.url, image.file, response.headers['content-type']);
                         // Save file to local folder
                         r.pipe(fs.createWriteStream(path.join(folder, localFile)));
                     })
@@ -90,6 +95,7 @@ var dailyComics = (function() {
                     .on('end', saveImage);
             }
             else {
+                console.log(divider());
                 createIndexPage();
             }
         })();
@@ -120,6 +126,7 @@ var dailyComics = (function() {
                     var img = $(comic.selector.img)[0].attribs.src;
                     resolve({
                         url: url.resolve(comic.url, img),
+                        file: comic.file,
                         name: comic.name
                     });
                 });
@@ -142,8 +149,7 @@ var dailyComics = (function() {
 
                 data.comics.forEach(function(comics) {
                     comics.items.forEach(function(comic) {
-                        comicsList.push(comic); // save list to build index file
-                        var file = fs.dir(folder).find('.', { matching: '*' + comic.file + '*' });
+                        var file = fs.find(folder, { matching: '*' + comic.file + '*' });
                         if (!file.length) {
                             var results = formatComicsUrl(comics.url, comic);
                             if (results.url) { comicsRequestList.push(results); }
@@ -156,13 +162,48 @@ var dailyComics = (function() {
         });
     };
 
-    /*
+    /* Create and Open `index` page
     --------------------------------------------------------------------------- */
-    var createIndexPage = function(data) {
-        console.log(divider());
-        console.log('createIndexPage');
+    var indexPage = function(date, comics) {
+        var template = `
+            <!DOCTYPE html>
+            <html><head><meta charset="utf-8">
+            <title>Daily Comics | ${date}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style type="text/css">
+            .comics-list { margin: 0; padding: 0; list-style: none; }
+            .comics-list li { margin-bottom: 15px; padding: 0 15px 15px; border-bottom: 1px solid #ccc; }
+            .comics-list h3 { margin: 0 0 5px; font: 200 18px/1 'Helvetica Neue', Helvetica, sans-serif; color: #666; }
+            .comics-list img { max-width: 100%; height: auto; }
+            </style></head>
+            <body><ul class="comics-list">${comics}</ul></body></html>
+        `;
+        return template;
     };
 
+    var createIndexPage = function(data) {
+        var index = path.join(folder, 'index.html');
+        if (fs.exists(index) === 'file') {
+            openIndexPage(index);
+            return;
+        }
+
+        var comics = fs.find(folder, { matching: '*.{jpg,jpeg,gif,png}' });
+        var list = comics.map(function(comic) {
+            return '<li><img src="' + path.basename(comic) + '"></li>';
+        });
+        var date = dateFormat(now, 'mediumDate');
+        fs.file(index, { content: indexPage(date, list.join('')) });
+        openIndexPage(index);
+    };
+
+    var openIndexPage = function(file) {
+        opn(file);
+        process.exit();
+    };
+
+    /* Init Comic Promise Chain
+    --------------------------------------------------------------------------- */
     var getComics = function() {
         getListOfComics().then(getComicImageUrls).then(downloadImages);
     };
