@@ -13,6 +13,7 @@
     "cheerio": "^0.22.0",
     "dateformat": "^2.0.0",
     "fs-jetpack": "^0.13.3",
+    "opn": "^5.0.0",
     "read-yaml": "^1.1.0",
     "request": "^2.81.0"
   }
