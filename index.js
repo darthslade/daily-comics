@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* global Promise */
 var url = require('url');
 var opn = require('opn');
@@ -9,7 +11,9 @@ var readYaml = require('read-yaml');
 var dateFormat = require('dateformat');
 
 var now = new Date();
+var mode = process.env.mode || 'node';
 var folder = path.join('./archive', dateFormat(now, 'yyyy/mm/dd'));
+var comicList = [];
 
 /* Utils
 --------------------------------------------------------------------------- */
@@ -43,7 +47,7 @@ var dailyComics = (function() {
             selector: {}
         };
 
-        // Kludge: Would prefer the HTML5 Template Literal to be stored in the yaml file along with each list
+        // Would prefer the HTML5 Template Literal to be stored in the yaml file along with each list
         // but it's a pain to `eval` the template then parse. It's easier to store it in this `switch` statement.
         switch (type) {
             case 'gocomics':
@@ -68,7 +72,7 @@ var dailyComics = (function() {
             return;
         }
 
-        console.log('Saving Images\n' + divider());
+        console.log('\nSaving Images\n' + divider());
         var list = urls.filter(function(n) { return n !== undefined; });
 
         var saveImage = (function saveImage() {
@@ -120,7 +124,7 @@ var dailyComics = (function() {
                     }
 
                     process.stdout.write('Gathering image urls: ' + (index + 1) + ' of ' + list.length + '\r');
-                    if (index === list.length - 1) { process.stdout.write('\n\n'); }
+                    if (index === list.length - 1) { process.stdout.write('\n'); }
 
                     // @url.resolve - concat relative urls with their hostname to create an absolute url
                     var img = $(comic.selector.img)[0].attribs.src;
@@ -149,11 +153,10 @@ var dailyComics = (function() {
 
                 data.comics.forEach(function(comics) {
                     comics.items.forEach(function(comic) {
-                        var file = fs.find(folder, { matching: '*' + comic.file + '*' });
-                        if (!file.length) {
-                            var results = formatComicsUrl(comics.url, comic);
-                            if (results.url) { comicsRequestList.push(results); }
-                        }
+                        var file = fs.dir(folder).find({ matching: '*' + comic.file + '*' });
+                        var results = formatComicsUrl(comics.url, comic);
+                        if (!file.length && results.url) { comicsRequestList.push(results); }
+                        comicList.push(results);
                     });
                 });
 
@@ -164,7 +167,7 @@ var dailyComics = (function() {
 
     /* Create and Open `index` page
     --------------------------------------------------------------------------- */
-    var indexPage = function(date, comics) {
+    var indexPage = function(date, comics, folder) {
         var template = `
             <!DOCTYPE html>
             <html><head><meta charset="utf-8">
@@ -176,25 +179,34 @@ var dailyComics = (function() {
             .comics-list h3 { margin: 0 0 5px; font: 200 18px/1 'Helvetica Neue', Helvetica, sans-serif; color: #666; }
             .comics-list img { max-width: 100%; height: auto; }
             </style></head>
-            <body><ul class="comics-list">${comics}</ul></body></html>
+            <body data-folder="${folder}"><ul class="comics-list">${comics}</ul></body></html>
         `;
         return template;
     };
 
-    var createIndexPage = function(data) {
+    var getComicTitle = function(comic) {
+        var filename = path.basename(comic, path.extname(comic));
+        var title = comicList.filter(function(item) {
+            if (item.file === filename) { return true; }
+            return false;
+        });
+        return title[0].name;
+    };
+
+    var createIndexPage = function() {
         var index = path.join(folder, 'index.html');
         if (fs.exists(index) === 'file') {
-            openIndexPage(index);
+            (mode === 'node')? openIndexPage(index) : console.log(fs.read(index));
             return;
         }
 
         var comics = fs.find(folder, { matching: '*.{jpg,jpeg,gif,png}' });
         var list = comics.map(function(comic) {
-            return '<li><img src="' + path.basename(comic) + '"></li>';
+            return '<li><h3>' + getComicTitle(comic) + '</h3><img src="' + path.basename(comic) + '"></li>';
         });
         var date = dateFormat(now, 'mediumDate');
-        fs.file(index, { content: indexPage(date, list.join('')) });
-        openIndexPage(index);
+        fs.file(index, { content: indexPage(date, list.join(''), folder) });
+        (mode === 'node')? openIndexPage(index) : console.log(indexPage(date, list.join(''), folder));
     };
 
     var openIndexPage = function(file) {
