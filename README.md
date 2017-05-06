@@ -14,6 +14,7 @@ Requires: [Node.js and npm 3+](https://docs.npmjs.com/getting-started/installing
 1. [Fork the repo](https://github.com/misega/daily-comics/fork)
 1. `git clone https://github.com/misega/daily-comics.git`
 1. `cd daily-comics`
+1. `npm install`
 1. `node index.js` starts pulling comics then displays results in a browser.<br>
     Optionally, you could just view `index.php` in the browser.<br>
     `index.php` will only work via a PHP-capable server (e.g. Apache, Nginx)<br>
