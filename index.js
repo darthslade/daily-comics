@@ -23,6 +23,7 @@ var divider = function() {
 };
 
 var showDownloadingProgress = function(msg, received, total) {
+    if (mode !== 'node') { return; }
     var percentage = ((received * 100) / total).toFixed(2);
     process.stdout.write(msg + percentage + '%\r');
     if (percentage >= 100) { process.stdout.write('\n'); }
@@ -32,6 +33,11 @@ var formatLocalFileName = function(file, name, type) {
     var extension = path.extname(file).slice(1);
     if (!extension) { extension = type.split('/')[1]; }
     return name + '.' + extension;
+};
+
+var log = function(msg) {
+    if (mode !== 'node') { return; }
+    console.log(msg);
 };
 
 // Daily Comics
@@ -72,7 +78,7 @@ var dailyComics = (function() {
             return;
         }
 
-        console.log('\nSaving Images\n' + divider());
+        log('\nSaving Images\n' + divider());
         var list = urls.filter(function(n) { return n !== undefined; });
 
         var saveImage = (function saveImage() {
@@ -99,7 +105,7 @@ var dailyComics = (function() {
                     .on('end', saveImage);
             }
             else {
-                console.log(divider());
+                log(divider());
                 createIndexPage();
             }
         })();
@@ -123,8 +129,10 @@ var dailyComics = (function() {
                         return reject('unable to find: ' + comic.file);
                     }
 
-                    process.stdout.write('Gathering image urls: ' + (index + 1) + ' of ' + list.length + '\r');
-                    if (index === list.length - 1) { process.stdout.write('\n'); }
+                    if (mode === 'node') {
+                        process.stdout.write('Gathering image urls: ' + (index + 1) + ' of ' + list.length + '\r');
+                        if (index === list.length - 1) { process.stdout.write('\n'); }
+                    }
 
                     // @url.resolve - concat relative urls with their hostname to create an absolute url
                     var img = $(comic.selector.img)[0].attribs.src;
