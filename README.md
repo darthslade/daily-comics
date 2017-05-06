@@ -26,7 +26,7 @@ Requires: [Node.js and npm 3+](https://docs.npmjs.com/getting-started/installing
 Open `comics-list.yml`, currently pulls from [gocomics](http://www.gocomics.com/) and [arcamax](https://www.arcamax.com/comics)<br>
  -- `file` is the url-formatted name of the comic<br>
  -- `name` is the display name<br>
-Adding another website will require adding the URL formatted as a Template Literal in a [switch statment in index.js](https://github.com/misega/daily-comics/blob/master/index.js#L52-L61)
+Adding another website will require adding the URL, formatted as a Template Literal, in a [switch statment in index.js](https://github.com/misega/daily-comics/blob/master/index.js#L52-L61)
 
 
 ## Issues and Feedback
