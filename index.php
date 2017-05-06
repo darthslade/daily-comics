@@ -9,7 +9,7 @@ $doc->loadHTML(implode("\n", $output));
 $body = $doc->getElementsByTagName('body')->item(0);
 $folder = $body->getAttribute('data-folder');
 
-// update all images paths to include current folder
+// update all image paths to include current folder
 $images = $doc->getElementsByTagName('img');
 foreach($images as $image) {
     $src = $image->getAttribute('src');
