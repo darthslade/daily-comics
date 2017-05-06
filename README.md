@@ -16,7 +16,9 @@ Requires: [Node.js and npm 3+](https://docs.npmjs.com/getting-started/installing
 1. `cd daily-comics`
 1. `node index.js` starts pulling comics then displays results in a browser.<br>
     Optionally, you could just view `index.php` in the browser.<br>
-    `index.php` will only work via a PHP-capable server (e.g. Apache, Nginx)
+    `index.php` will only work via a PHP-capable server (e.g. Apache, Nginx)<br>
+    If PHP does not execute the node script, you may need to [update your node path](https://github.com/misega/daily-comics/blob/master/index.php#L3)<br>
+    In the terminal, type `which node` to see the absolute path.
 
 ### Edit List of Comics
 
