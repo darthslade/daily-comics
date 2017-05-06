@@ -36,8 +36,7 @@ var formatLocalFileName = function(file, name, type) {
 };
 
 var log = function(msg) {
-    if (mode !== 'node') { return; }
-    console.log(msg);
+    if (mode === 'node') { console.log(msg); }
 };
 
 // Daily Comics
